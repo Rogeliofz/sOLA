@@ -1,0 +1,430 @@
+﻿
+@{
+    ViewBag.Title = "Index";
+}
+
+<h2>Index</h2>
+
+<a href="#" id="lnk-Agregar">Agregar</a>
+
+
+<link href="~/Content/bootstrap.css" rel="stylesheet" />
+
+<div id="mensaje">
+
+
+</div>
+
+
+<table class=" table table-hover" id="lista">
+
+    <thead>
+
+        <tr>
+
+            <th> Nombre  </th>
+            <th> Apellido  </th>
+            <th> Puesto </th>
+            <th>  </th>
+
+        </tr>
+
+    </thead>
+
+    <tbody id="info">
+    </tbody>
+
+</table>
+
+    
+
+        <div id="formulario">
+
+            <table>
+
+                <tr>
+
+            <td> <input type="hidden" id="txt-Id_NumEmp" /> </td>
+
+                </tr>
+
+                <tr>
+                    <td>Nombre:</td>
+                    <td> <input type="text" id="txt-Nombre" /> </td>
+
+                </tr>
+
+                <tr>
+                    <td>Apellidos:</td>
+                    <td> <input type="text" id="txt-Apellidos" /> </td>
+
+                </tr>
+
+                <tr>
+                    <td>Puesto:</td>
+                    <td>
+
+                        @*<input type="text" id="txt-Id_Puesto" />*@
+
+                        @Html.DropDownList("Id_Puesto", new SelectList(ViewBag.CatalogoPuestos, "Id_Puesto", "Puesto"), "Selecione el Puesto", new { @class = "form-control mb-3", id = "txt-Id_Puesto" })
+
+                    </td>
+
+                </tr>
+                <tr>
+                    <td colspan="2">
+                        <input type="button" value="Agregar" id="btn-agregar" class="btn btn-success me-2" />
+                        <input type="button" value="Editar" id="btn-Editar" class="btn btn-primary me-2" />
+                        <input type="button" value="Cancelar" id="btn-cancelar" class="btn btn-secondary" />
+                    </td>
+                </tr>
+
+
+
+            </table>
+
+        </div>
+
+    
+
+
+
+
+
+<script src="~/Scripts/jquery-3.7.0.min.js"></script>
+
+<script src="~/Scripts/bootstrap.min.js"></script>
+
+
+<script>
+
+    $(document).ready(function () {   //se ejecuta cunado se cargo al 100% el html de arriba, se llama obtener tabla y se oculta formulario.
+
+        obtenertabla();
+
+        $("#formulario").hide();
+
+
+    });
+
+    $("#lnk-Agregar").click(function () {
+
+        
+        $("#formulario").show();
+        $("#lista").hide();
+        $("#lnk-Agregar").hide();
+
+        $("#btn-agregar").show();
+        $("#btn-cancelar").show();
+        $("#btn-Editar").hide();
+
+        limpiarCajas();
+
+
+
+    });
+
+    $("#btn-cancelar").click(function () {
+
+        $("#formulario").hide();
+        $("#lista").show();
+        $("#lnk-Agregar").show();
+        limpiarCajas();
+
+    });
+
+    function limpiarCajas() {   //se limpian las cajas de texto del formulario
+
+            $("#txt-Nombre").val("")
+            $("#txt-Apellidos").val("")
+            $("#txt-Id_Puesto").val("")
+           
+    }
+
+    function lnkBorrar(Id_NumEmp) {
+
+        jQuery.ajax({
+
+            type: 'Post',
+            url: '/Home/Eliminar/' + Id_NumEmp,
+
+            success: function (respuesta) {
+
+                if (respuesta.mensaje == "ok") {
+
+                    obtenertabla();
+
+                    $("#lnk-Agregar").show();
+
+                    $("#mensaje").empty();
+
+                    $("#mensaje").html('<br/> <div class="alert alert-danger"> Se elimino correctamente  </div>');
+
+                    $("#mensaje").fadeIn();
+
+                    setTimeout(function () {
+                        $('#mensaje').fadeOut();
+                    }, 5000);
+
+                }
+
+                else {
+
+                    alert(respuesta.mensaje)
+
+                }
+            },
+
+            error: function (objXMLHttpRequest) {
+                alert(objXMLHttpRequest);
+            }
+
+        });
+
+    }
+
+
+    $("#btn-agregar").click(function () {
+
+        var empleado =
+        {
+            Nombre: $("#txt-Nombre").val(),
+            Apellidos: $("#txt-Apellidos").val(),
+            Id_Puesto: $("#txt-Id_Puesto").val(),
+
+
+        };
+
+        jQuery.ajax({
+
+            type: 'Post',
+            url: '/Home/Agregar',
+            contentType: 'application/json; charset= utf-8',
+            dataType: "json",
+            data: JSON.stringify(empleado),
+            success: function (respuesta) {
+                if (respuesta.mensaje == 'ok') {
+
+                    obtenertabla();
+
+                   
+                    $("#formulario").hide();
+                    $("#lista").show();
+                    $("#lnk-Agregar").show();
+
+                    $("#mensaje").empty();
+
+                    $("#mensaje").html('<br/> <div class="alert alert-success"> Se agregó correctamente a ' + $("#txt-Nombre").val() + '  </div>');
+                    $("#mensaje").fadeIn();
+
+                    setTimeout(function () {
+                        $('#mensaje').fadeOut();
+                    }, 5000);
+
+                    
+                    limpiarCajas();
+
+                }
+                else {
+
+                    alert(respuesta.mensaje)
+
+                }
+            },
+            error: function (objXMLHttpRequest) {
+                alert(objXMLHttpRequest);
+
+            }
+        });
+
+    });
+
+    $("#btn-Editar").click(function () {
+
+        var empleado =
+        {
+            Id_NumEmp: $("#txt-Id_NumEmp").val(),
+            Nombre: $("#txt-Nombre").val(),
+            Apellidos: $("#txt-Apellidos").val(),
+            Id_Puesto: $("#txt-Id_Puesto").val(),
+
+        }
+
+        jQuery.ajax({
+
+            type: 'Post',
+            url: '/Home/Editar',
+            contentType: 'application/json; charset= utf-8',
+            dataType: "json",
+            data: JSON.stringify(empleado),
+            success: function (respuesta) {
+
+                if (respuesta.mensaje == "ok") {
+
+                    obtenertabla();
+
+                    $("#formulario").hide();
+                    $("#lista").show();
+                    $("#lnk-Agregar").show();
+
+                    $("#mensaje").empty();
+
+                    $("#mensaje").html('<br/> <div class="alert alert-success"> Se agregó edito correctamente a ' + $("#txt-Nombre").val() + '  </div>');
+
+                    $("#mensaje").fadeIn();
+                    setTimeout(function () {
+                        $('#mensaje').fadeOut();
+                    }, 5000);
+
+
+                    limpiarCajas();
+
+
+                }
+                else {
+
+                    alert(respuesta.mensaje)
+
+                }
+
+            },
+
+            error: function (objXMLHttpRequest) {
+                alert(objXMLHttpRequest);
+            }
+
+        });
+
+
+
+    });
+
+
+
+
+    function obtenertabla() {
+
+        jQuery.ajax({
+
+            type: 'Get',
+            url: '/Home/Obtener',
+
+            success: function (respuesta)
+            {
+                if (respuesta.mensaje == 'ok') {
+
+                    llenartabla(respuesta.ls)
+
+                }
+
+                else {
+
+                    alert(respuesta.mensaje)
+
+                }
+
+            },
+
+            error: function (objXMLHttpRequest) {
+                alert(objXMLHttpRequest);
+            }
+
+
+        });
+
+    }
+
+    function llenartabla(infoTabla) {
+
+        debugger;
+
+        var f = '';
+
+        jQuery.each(infoTabla, function (i, elemento) {
+
+            f += ' <tr> ';
+
+            //f += ' <td> ';
+            //f += elemento.Id_NumEmp;
+            //f += ' </td> ';
+
+            f += ' <td> ';
+            f += elemento.Nombre;
+            f += ' </td> ';
+
+            f += ' <td> ';
+            f += elemento.Apellidos;
+            f += ' </td> ';
+
+            f += ' <td> ';
+            f += elemento.PuestoEXT.Puesto;
+            f += ' </td> ';
+
+            f += ' <td> ';
+            f += '<a href="#" class="btn btn-danger" onclick="lnkBorrar(' + elemento.Id_NumEmp + ')">Borrar</a> ';
+            f += ' </td> ';
+
+            f += ' <td> ';
+            f += '<a href="#" class="btn btn-primary" onclick="lnkEditar(' + elemento.Id_NumEmp + ')">Editar</a> ';
+            f += ' </td> ';
+
+            f += ' </tr> ';
+
+        })
+
+        $("#info").empty();
+        $("#info").html(f);
+
+    }
+
+    function lnkEditar(id) {
+
+        jQuery.ajax({
+
+            type: 'Get',
+            url: '/Home/ObtenerporId/' + id,
+
+            success: function (respuesta) {
+                if (respuesta.mensaje == "ok") {
+
+                    $("#formulario").show();
+                    $("#lista").hide();
+                    $("#lnk-Agregar").hide();
+
+                    //llenar los imputs con los datos resibidos
+                    $("#txt-Id_NumEmp").val(respuesta.objeto.Id_NumEmp);
+                    $("#txt-Nombre").val(respuesta.objeto.Nombre);
+                    $("#txt-Apellidos").val(respuesta.objeto.Apellidos);
+                    $("#txt-Id_Puesto").val(respuesta.objeto.Id_Puesto);
+
+
+                    //poner botones cancelar y editar
+                    $("#btn-agregar").hide();
+                    $("#btn-Editar").show();
+                    $("#btn-cancelar").show();
+                    
+
+                }
+
+                else {
+
+                    alert(respuesta.mensaje);
+
+                }
+
+            },
+
+            error: function (objXMLHttpRequest) {
+
+                alert(objXMLHttpRequest);
+            }
+
+        });
+
+
+    }
+
+
+
+
+</script>
